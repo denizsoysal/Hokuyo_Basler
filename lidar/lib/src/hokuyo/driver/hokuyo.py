@@ -297,7 +297,9 @@ class Hokuyo(object):
             self.__set_scan(scan)
 
         self.__scan_lock.acquire()
-        print(self.__angles, self.__distances, self.__timestamp)
+        #print(self.__angles, self.__distances, self.__timestamp)
+        
+        return self.__angles, self.__distances, self.__timestamp
         self.__scan_lock.release()
     def get_scan2(self):
         scan = self.get_multiple_scans()
