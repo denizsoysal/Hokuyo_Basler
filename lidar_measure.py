@@ -1,7 +1,7 @@
 import serial
 
-from hokuyo.driver import hokuyo
-from hokuyo.tools import serial_port
+from Hokuyo_Basler.lidar.lib.src.hokuyo.driver import hokuyo
+from Hokuyo_Basler.lidar.lib.src.hokuyo.tools import serial_port
 
 
 uart_port = 'COM3'
@@ -19,9 +19,7 @@ if __name__ == '__main__':
     print(laser.laser_on())
     print('---')
     #print('get scan',laser.get_scan2())
-    ang,dist,timestamp = laser.get_scan()
-    
-    print("WSHHH ALORS", ang,dist,timestamp)
+    laser.get_scan()
     print('---***************************************************************-------------')
     print(laser.get_version_info())
     print('---')

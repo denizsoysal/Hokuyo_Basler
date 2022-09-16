@@ -227,7 +227,6 @@ class Hokuyo(object):
             assert result[-1] == '\n'
 
             scan = self.__get_and_parse_scan(cluster_count, start_step, stop_step)
-            print(scan)
             return scan
 
         except BaseException as e:
@@ -262,11 +261,9 @@ class Hokuyo(object):
 
                 scan = self.__get_and_parse_scan(cluster_count, start_step, stop_step)
                                 
-                time.sleep(1)
                 
                 index += 1
                 
-                print(scan)
                 
                 yield scan
 
@@ -297,10 +294,11 @@ class Hokuyo(object):
             self.__set_scan(scan)
 
         self.__scan_lock.acquire()
+        self.__scan_lock.release()
         #print(self.__angles, self.__distances, self.__timestamp)
         
         return self.__angles, self.__distances, self.__timestamp
-        self.__scan_lock.release()
+        #self.__scan_lock.release()
     def get_scan2(self):
         scan = self.get_multiple_scans()
         f = open("log.txt", 'w')
@@ -320,7 +318,6 @@ class Hokuyo(object):
                         self.laser_on()
                         self.__port_lock.release()
                         break
-            time.sleep(0.1)
 
     @staticmethod
     def __parse_scan(scan):
