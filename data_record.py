@@ -129,8 +129,8 @@ while camera.IsGrabbing():
 
 
         # Show images
-        cv2.namedWindow('zd', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('zd', depth_colormap)
+        cv2.namedWindow('depth real sense', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('depth real sense', depth_colormap)
         print("saving")
         cv2.imwrite(folder_name+"/real_sense_img_%d.png" % i,depth_colormap)
         cv2.waitKey(1)
