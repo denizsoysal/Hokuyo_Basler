@@ -84,7 +84,6 @@ class Hokuyo(object):
         try:
             self.__port.write(command)
             result = self.__port.read(len(command))
-            assert result == command
         finally:
             self.__port_lock.release()
         return result
@@ -97,9 +96,6 @@ class Hokuyo(object):
                 result += self.__execute_command(command)
                 result += self.__port.read(Hokuyo.SHORT_COMMAND_LEN)
 
-                if check_response:
-                    assert result[-5:-2] == '00P'
-                assert result[-2:] == '\n\n'
 
                 return result
             except BaseException as e:
@@ -117,9 +113,7 @@ class Hokuyo(object):
                 result += self.__execute_command(cmd)
 
                 result += self.__port.read(4)
-                if check_response:
-                    assert result[-4:-1] == '00P'
-                assert result[-1:] == '\n'
+
 
                 line = 0
                 while line < lines:
@@ -132,7 +126,6 @@ class Hokuyo(object):
                     else:  # char is None
                         line += 1
 
-                assert result[-2:] == '\n\n'
 
                 return result
             except BaseException as e:
@@ -196,7 +189,6 @@ class Hokuyo(object):
         finally:
             self.__port_lock.release()
 
-        assert result[-2:] == '\n\n'
 
         result = result.split('\n')
         result = [line[:-1] for line in result]
@@ -217,14 +209,10 @@ class Hokuyo(object):
             self.__port.write(cmd)
 
             result = self.__port.read(len(cmd))
-            assert result == cmd
 
             result += self.__port.read(4)
-            assert result[-4:-1] == '00P'
-            assert result[-1] == '\n'
 
             result = self.__port.read(6)
-            assert result[-1] == '\n'
 
             scan = self.__get_and_parse_scan(cluster_count, start_step, stop_step)
             return scan
@@ -244,20 +232,16 @@ class Hokuyo(object):
             self.__port.write(cmd)
 
             result = self.__port.read(len(cmd))
-            assert result == cmd
 
             result += self.__port.read(Hokuyo.SHORT_COMMAND_LEN)
-            assert result[-2:] == '\n\n'
 
             index = 0
             while index < number_of_scans:
                 
 
                 result = self.__port.read(Hokuyo.MD_COMMAND_REPLY_LEN)
-                assert result[:13] == cmd[:13]
 
                 result = self.__port.read(6)
-                assert result[-1] == '\n'
 
                 scan = self.__get_and_parse_scan(cluster_count, start_step, stop_step)
                                 
