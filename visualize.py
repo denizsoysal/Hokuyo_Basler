@@ -21,8 +21,7 @@ uart_speed = 115200
 
 
 now=time.localtime()
-folder_name = "Recording_{}_{}_{}".format(now.tm_hour,now.tm_min,now.tm_sec)
-os.mkdir(folder_name) #should determine something more adequate
+
 
 # conecting to the first available camera
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
@@ -60,26 +59,19 @@ num_of_images = 10
 while camera.IsGrabbing():
     for i in range(1000):
 
-        print('recording:',i)
+        print('visualization:',i)
         #print('get scan',laser.get_scan2())
         ang,dist,timestamp = laser.get_scan()
         dist = np.array(dist)
         dist = dist*0.001
-        #here save the lidar data 
-        f = open(folder_name+"/log_%d.txt" % i, 'w')
-        f.write("%s\n" %ang)
-        f.write("%s\n" %dist)
-        f.write("%s\n\n" %timestamp)
-        f.close()
+        
         #read the camera feed
         grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
         if grabResult.GrabSucceeded():
             # Access the image data
             image = converter.Convert(grabResult)
             frame = image.GetArray()
-        #saving the image in the folder   
-        cv2.imwrite(folder_name+"/img_%d.png" % i,frame)
-        grabResult.Release()
+
         
         
         if (i%5 == 0): #we display in real time only one picture every 5 saved in memory
