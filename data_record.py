@@ -19,7 +19,7 @@ from lidar.lib.src.hokuyo.tools import serial_port
 import pyrealsense2 as rs
 
 
-uart_port = 'COM3'
+uart_port = 'COM7'
 uart_speed = 115200
 
 
@@ -93,7 +93,7 @@ profile = pipeline.start(config)
 
 while camera.IsGrabbing():
     for i in range(1000):
-
+        start = time.time()
         print('recording:',i)
         #print('get scan',laser.get_scan2())
         ang,dist,timestamp = laser.get_scan()
@@ -141,7 +141,7 @@ while camera.IsGrabbing():
         cv2.imwrite(folder_name+"/real_sense_color_img_%d.png" % i,color_image)
         cv2.waitKey(1)
     
-        if (i%5 == 0): #we display in real time only one picture every 5 saved in memory
+        if (i !=0 and i%5 == 0): #we display in real time only one picture every 5 saved in memory
             
             #save raw depth without apply heat map
             depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
@@ -174,7 +174,9 @@ while camera.IsGrabbing():
             cv2.namedWindow('depth real sense', cv2.WINDOW_AUTOSIZE)
             cv2.imshow('depth real sense', depth_colormap)
         
-            
+        end =  time.time()
+        time_duration = end - start
+        print(time_duration)
         #escape the loop if pressed
         k = cv2.waitKey(33)
         if k == 27: #press esc to exit

@@ -24,7 +24,8 @@ uart_speed = 115200
 
 
 now=time.localtime()
-
+folder_name = "RecordingCalibrate_{}_{}_{}".format(now.tm_hour,now.tm_min,now.tm_sec)
+os.mkdir(folder_name) #should determine something more adequate
 
 # conecting to the first available camera
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
@@ -58,7 +59,6 @@ ax.grid(True)
 
 num_of_images = 10
 
-
 #configure intel real sense D435i
 
 # Configure depth and color streams
@@ -88,45 +88,67 @@ else:
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
 # Start streaming
-pipeline.start(config)
-
+profile = pipeline.start(config)
 
 
 while camera.IsGrabbing():
-    for i in range(1000):
-
-        print('visualization:',i)
+    for i in range(50):
+        start = time.time()
+        print('recording:',i)
         #print('get scan',laser.get_scan2())
         ang,dist,timestamp = laser.get_scan()
         dist = np.array(dist)
         dist = dist*0.001
-        
+        #here save the lidar data 
+        f = open(folder_name+"/log_%d.txt" % i, 'w')
+        f.write("%s\n" %ang)
+        f.write("%s\n" %dist)
+        f.write("%s\n\n" %timestamp)
+        f.close()
         #read the camera feed
         grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
         if grabResult.GrabSucceeded():
             # Access the image data
             image = converter.Convert(grabResult)
             frame = image.GetArray()
-
+        #saving the image in the folder   
+        cv2.imwrite(folder_name+"/basler_img_%d.png" % i,frame)
+        grabResult.Release()
+        
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
-        if not depth_frame:
+        color_frame = frames.get_color_frame()
+        if not depth_frame or not color_frame:
             continue
-
+        
+        
         # Convert images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
+        color_image = np.asanyarray(color_frame.get_data())
+        
+        
 
+ 
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
 
 
         # Show images
-        cv2.namedWindow('depth real sense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('depth real sense', depth_colormap)
+        #save
+        print("saving")
+        cv2.imwrite(folder_name+"/real_sense_depth_img_%d.png" % i,depth_colormap)
+        cv2.imwrite(folder_name+"/real_sense_color_img_%d.png" % i,color_image)
         cv2.waitKey(1)
-        
-        if (i%5 == 0): #we display in real time only one picture every 5 saved in memory
+    
+        if (i !=0 and i%5 == 0): #we display in real time only one picture every 5 saved in memory
+            
+            #save raw depth without apply heat map
+            depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
+            distance = depth_image.astype(float)*depth_scale 
+            np.savetxt(folder_name+"/depth_values_real_sense_%d.csv" %i, distance, delimiter=",")
+            
+            
             now=time.localtime()
             time_str = "t= {}:{}:{}".format(now.tm_hour,now.tm_min,now.tm_sec)
             ax.set_title("Real-time Lidar data visualization, "+time_str, va='bottom')
@@ -148,6 +170,12 @@ while camera.IsGrabbing():
             #display image from camera in window
             cv2.imshow("cam",frame)
             
+            #display real sense image
+            cv2.namedWindow('depth real sense', cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('depth real sense', depth_colormap)
+        
+        end =  time.time()
+        time_duration = end - start
         #escape the loop if pressed
         k = cv2.waitKey(33)
         if k == 27: #press esc to exit
