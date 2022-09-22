@@ -19,7 +19,7 @@ from lidar.lib.src.hokuyo.tools import serial_port
 import pyrealsense2 as rs
 
 
-uart_port = 'COM7'
+uart_port = 'COM3'
 uart_speed = 115200
 
 
@@ -56,6 +56,10 @@ ax.set_rmax(4)
 ax.set_rticks([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4])  # Less radial ticks
 ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
 ax.grid(True)
+ax.set_theta_zero_location("N")
+ax.set_theta_direction(-1)  # theta increasing clockwise
+
+
 
 num_of_images = 10
 
@@ -176,7 +180,6 @@ while camera.IsGrabbing():
         
         end =  time.time()
         time_duration = end - start
-        print(time_duration)
         #escape the loop if pressed
         k = cv2.waitKey(33)
         if k == 27: #press esc to exit
