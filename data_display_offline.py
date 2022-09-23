@@ -50,11 +50,15 @@ for i in range(300):
     time_stamp = last_elem[1]
     #NEED TO FORMAT the timestamp !!!
     dist_float = [float(ele.strip('\n')) for ele in dist]
+    dist_filter = dist_float
+    for j in range(len(dist_float)):
+        if (dist_float[j]>3):
+            dist_filter[j] =0
     
     now=time.localtime()
     time_str = "t= {}:{}:{}".format(now.tm_hour,now.tm_min,now.tm_sec)
     ax.set_title("Real-time Lidar data visualization, "+time_str, va='bottom')
-    line1.set_ydata(dist_float)
+    line1.set_ydata(dist_filter)
     # redraw the canvas
     fig.canvas.draw()
     
@@ -68,12 +72,15 @@ for i in range(300):
     
     # display Lidar data in the window
     cv2.namedWindow("Lidar",cv2.WINDOW_NORMAL);
+    cv2.resizeWindow('Lidar', 720, 480)
     cv2.imshow("Lidar",img)
     
     cam_frame = cv2.imread(folder_name+"/basler_img_%d.png" % i)
     cv2.namedWindow("Basler",cv2.WINDOW_NORMAL);
+    cv2.resizeWindow('Basler', 720, 480)
     cv2.imshow("Basler",cam_frame)
-    time.sleep(1) #to set the rate of the loop 
+    
+    time.sleep(0.1) #to set the rate of the loop 
     """
     Read everything
 
