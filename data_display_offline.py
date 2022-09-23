@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import time
 import os 
 
-folder_name = "data_set"
+folder_name = "collected_data\inside_wall_dry\RecordingDuringSpraying_14_41_5"
 
 f = open(folder_name+"/log_0.txt", 'r')
 ang = f.readline()
@@ -38,7 +38,12 @@ ax.grid(True)
 ax.set_theta_zero_location('N')
 ax.set_theta_direction(-1)
 
-for i in range(300):
+#put saving = 1 if you just want to save
+#put saving=0 to display the data
+saving = 1
+i = 10
+if saving==1:
+    
     #reading Lidar logs
     f = open(folder_name+"/log_%d.txt" % i, 'r')
     ang = f.readline()
@@ -70,39 +75,32 @@ for i in range(300):
     # img is rgb, convert to opencv's default bgr
     img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
     
-    # display Lidar data in the window
-    cv2.namedWindow("Lidar",cv2.WINDOW_NORMAL);
-    cv2.resizeWindow('Lidar', 720, 480)
-    cv2.imshow("Lidar",img)
     
-    cam_frame = cv2.imread(folder_name+"/basler_img_%d.png" % i)
-    cv2.namedWindow("Basler",cv2.WINDOW_NORMAL);
-    cv2.resizeWindow('Basler', 720, 480)
-    cv2.imshow("Basler",cam_frame)
-    
-    time.sleep(0.1) #to set the rate of the loop 
-    """
-    Read everything
+    cv2.imwrite("lidar_img_%d.png" % i, img)
+else:
+    for i in range(300):
+        print(i)
 
-    #show image  
-    cv2.imshow(folder_name+"/basler_img_%d.png" % i,frame)
-    
-    cv2.imwrite(folder_name+"/real_sense_depth_img_%d.png" % i,depth_colormap)
-    cv2.imwrite(folder_name+"/real_sense_color_img_%d.png" % i,color_image)
-    cv2.waitKey(1)
-    
-    if (i !=0 and i%5 == 0): #we display in real time only one picture every 5 saved in memory
+        #reading Lidar logs
+        f = open(folder_name+"/log_%d.txt" % i, 'r')
+        ang = f.readline()
         
-        #save raw depth without apply heat map
-        depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
-        distance = depth_image.astype(float)*depth_scale 
-        np.savetxt(folder_name+"/depth_values_real_sense_%d.csv" %i, distance, delimiter=",")
-        
+        dist = f.read()
+        dist = dist.strip('][\n').split(' ')
+        last_elem = dist[-1].split(']\n')
+        dist[-1] = last_elem[0]
+        time_stamp = last_elem[1]
+        #NEED TO FORMAT the timestamp !!!
+        dist_float = [float(ele.strip('\n')) for ele in dist]
+        dist_filter = dist_float
+        for j in range(len(dist_float)):
+            if (dist_float[j]>3):
+                dist_filter[j] =0
         
         now=time.localtime()
         time_str = "t= {}:{}:{}".format(now.tm_hour,now.tm_min,now.tm_sec)
         ax.set_title("Real-time Lidar data visualization, "+time_str, va='bottom')
-        line1.set_ydata(dist)
+        line1.set_ydata(dist_filter)
         # redraw the canvas
         fig.canvas.draw()
         
@@ -110,22 +108,28 @@ for i in range(300):
         img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8,
                 sep='')
         img  = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    
+        
         # img is rgb, convert to opencv's default bgr
         img = cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
         
+
+        
         # display Lidar data in the window
+        cv2.namedWindow("Lidar",cv2.WINDOW_NORMAL);
+        cv2.resizeWindow('Lidar', 720, 480)
         cv2.imshow("Lidar",img)
         
-        #display image from camera in window
-        cv2.imshow("cam",frame)
+        cam_frame = cv2.imread(folder_name+"/basler_img_%d.png" % i)
+        cv2.namedWindow("Basler",cv2.WINDOW_NORMAL);
+        cv2.resizeWindow('Basler', 720, 480)
+        cv2.imshow("Basler",cam_frame)
         
-        #display real sense image
-        cv2.namedWindow('depth real sense', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('depth real sense', depth_colormap)
-    """
-    #escape the loop if pressed
-    k = cv2.waitKey(33)
-    if k == 27: #press esc to exit
-        break
-cv2.destroyAllWindows()
+        time.sleep(0.1) #to set the rate of the loop 
+        
+
+
+        #escape the loop if pressed
+        k = cv2.waitKey(33)
+        if k == 27: #press esc to exit
+            break
+    cv2.destroyAllWindows()
